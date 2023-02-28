@@ -1,40 +1,46 @@
 const butInstall = document.getElementById('buttonInstall');
 
 // Logic for installing the PWA
-let deferredPrompt;
-
+// TODO: Add an event handler to the `beforeinstallprompt` event
 window.addEventListener('beforeinstallprompt', (event) => {
-  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  // Prevent the default prompt
   event.preventDefault();
 
-  // Stash the event so it can be triggered later.
-  deferredPrompt = event;
-
-  // Update UI to notify the user they can add to home screen
+  // Show a custom prompt
+  // We can store the `event` object for later use in the `click` event handler
+  const installPrompt = event;
+  // Update the UI to show the install button
   butInstall.style.display = 'block';
+  // Attach the `click` event handler to the install button
+  butInstall.addEventListener('click', async () => {
+    // Hide the install button
+    butInstall.style.display = 'none';
+    // Show the browser's install prompt
+    installPrompt.prompt();
+    // Wait for the user to respond to the prompt
+    const choiceResult = await installPrompt.userChoice;
+    // Log the user's response
+    console.log(`User ${choiceResult.outcome}: ${choiceResult.platform}`);
+  });
 });
 
+// TODO: Implement a click event handler on the `butInstall` element
+butInstall.addEventListener('click', async (event) => {
+  // Prevent the default behavior of the button
+  event.preventDefault();
 
-// Implement a click event handler on the `butInstall` element
-butInstall.addEventListener('click', async () => {
-    // Show the prompt
-    deferredPrompt.prompt();
-  
-    // Wait for the user to respond to the prompt
-    const choiceResult = await deferredPrompt.userChoice;
-  
-    if (choiceResult.outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-  
-    // Reset the deferredPrompt variable, since it can only be used once
-    deferredPrompt = null;
-  });
-  
-// Add a handler for the `appinstalled` event
+  // Show the browser's install prompt
+  const installPrompt = event;
+  installPrompt.prompt();
+
+  // Wait for the user to respond to the prompt
+  const choiceResult = await installPrompt.userChoice;
+  // Log the user's response
+  console.log(`User ${choiceResult.outcome}: ${choiceResult.platform}`);
+});
+
+// TODO: Add an handler for the `appinstalled` event
 window.addEventListener('appinstalled', (event) => {
-    console.log('The app was successfully installed');
-  });
-  
+  // Add code here to track the installation of the PWA or to perform any other tasks
+  console.log('The app was successfully installed!');
+});

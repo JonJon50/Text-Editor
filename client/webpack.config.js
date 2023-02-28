@@ -1,63 +1,86 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { InjectManifest } = require('workbox-webpack-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 const path = require('path');
+const { InjectManifest } = require('workbox-webpack-plugin');
 
-module.exports = {
-  mode: 'development',
-  entry: './src/js/index.js',
-  output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
+module.exports = () => {
+  return {
+    mode: 'development',
+    entry: {
+      main: './src/js/index.js',
+      install: './src/js/install.js'
+    },
+    output: {
+      filename: '[name].bundle.js',
+      path: path.resolve(__dirname, 'dist'),
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: './src/index.html',
+        chunks: ['main'],
+        filename: 'index.html',
+      }),
 
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      title: 'Webpack Plugin',
-    }),
-    new MiniCssExtractPlugin(),
-    new InjectManifest({
-      swSrc: './src/sw.js',
-      swDest: 'service-worker.js',
-    }),
-    new WebpackPwaManifest({
-      name: 'My Progressive Web App',
-      short_name: 'My PWA',
-      start_url: '/',
-      display: 'standalone',
-      theme_color: '#ffffff',
-      background_color: '#ffffff',
-      icons: [
+      // ???
+      new InjectManifest({
+        swSrc: './src-sw.js',
+        swDest: 'src-sw.js',
+      }),
+
+
+      new HtmlWebpackPlugin({
+        template: './src/install.html',
+        chunks: ['install'],
+        filename: 'install.html',
+      }),
+      new WebpackPwaManifest({
+        name: 'My PWA',
+        short_name: 'My PWA',
+        description: 'My awesome Progressive Web App!',
+        background_color: '#ffffff',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: path.resolve('./src/img/icon.png'),
+            sizes: [96, 128, 192, 256, 384, 512],
+          },
+        ],
+      }),
+      new InjectManifest({
+        swSrc: './src/sw.js',
+        swDest: 'sw.js',
+      }),
+    ],
+
+    module: {
+      rules: [
+
+        // Not for sure if this is right ???
         {
-          src: path.resolve('src/img/icon.png'),
-          sizes: [96, 128, 192, 256, 384, 512],
-          purpose: 'any maskable',
+          test: /\.css$/i,
+          use: ['css-loader', 'style-loader']
         },
-      ],
-    }),
-  ],
-  module: {
-    rules: [
-      {
-        test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: 'asset/resource',
-      },
-      {
-        test: /\.m?js$/,
-        exclude: /(node_modules|bower_components)/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
+
+        // or this ???
+        {
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          type: 'asset/resource',
+        },
+
+
+        {
+          test: /\.js$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env'],
+            },
           },
         },
-      },
-    ],
-  },
+        // Add more rules for other types of files and loaders
+      ],
+    },
+    
+  };
 };
